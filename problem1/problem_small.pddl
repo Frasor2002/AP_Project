@@ -46,8 +46,6 @@
   (artifact_at alpha1 hall_alpha)
   (artifact_at beta1 hall_beta)
   (is_not_cool alpha1)
-  (not_in_pod alpha1)
-  (not_in_pod beta1)
 
   (robot_at worker entrance)
   (is_unsealed worker)

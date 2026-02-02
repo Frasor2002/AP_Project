@@ -43,7 +43,6 @@
   (is_cool ?a - artifact_alpha)
   (is_not_cool ?a - artifact_alpha)
   (is_in_pod ?a - artifact_beta)
-  (not_in_pod ?a - artifact)
 
   ; Robot state
   (robot_at ?r - robot ?z - zone)
@@ -104,7 +103,7 @@
   :precondition (and 
     (robot_at ?r ?z)
     (artifact_at ?a ?z)
-    (not_in_pod ?a)
+    (is_unsealed ?r)
     (robot_capacity ?r ?old_n)
     (next_capacity ?old_n ?new_n)
     (robot_can_carry ?r ?new_n)
@@ -122,6 +121,7 @@
   :precondition (and 
     (robot_at ?r ?z)
     (is_carrying ?r ?a)
+    (is_unsealed ?r)
     (robot_capacity ?r ?old_n)
     (next_capacity ?new_n ?old_n)
 
@@ -138,7 +138,7 @@
   :parameters (?r - robot ?a - artifact ?p - pod ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
     (robot_at ?r ?z)
-    (artifact_at ?a ?z)
+    (is_unsealed ?r)
     (pod_at ?p ?z)
     (in_pod ?a ?p)
 
@@ -160,13 +160,13 @@
   :precondition (and 
     (in_pod ?a ?p)
     (robot_at ?r ?z)
+    (is_unsealed ?r)
     (is_carrying_pod ?r ?p)
     (robot_capacity ?r ?old_n)
     (next_capacity ?new_n ?old_n)
   )
   :effect (and 
     (pod_at ?p ?z)
-    (artifact_at ?a ?z)
     (not (is_carrying_pod ?r ?p))
     (not (robot_capacity ?r ?old_n))
     (robot_capacity ?r ?new_n)
@@ -182,6 +182,7 @@
   )
   :effect (and
     ; a new pod is delivered and its state is reset
+    (artifact_at ?a stasis_lab)
     (not (pod_at ?p stasis_lab))
     (pod_at ?p pod_zone)
     (not (pod_full ?p))
@@ -196,6 +197,7 @@
   :precondition (and 
     (artifact_at ?a ?z)
     (robot_at ?r ?z)
+    (is_unsealed ?r)
     (is_not_cool ?a)
   )
   :effect (and 
@@ -209,16 +211,18 @@
   :precondition (and 
     (robot_at ?r ?z)
     (artifact_at ?a ?z)
+    (is_unsealed ?r)
     (pod_at ?p ?z)
     (pod_empty ?p)
-    (not_in_pod ?a)
+    ;(not_in_pod ?a)
   )
   :effect (and 
     (not (pod_empty ?p))
     (pod_full ?p)
-    (not (not_in_pod ?a))
+    ;(not (not_in_pod ?a))
     (is_in_pod ?a)
     (in_pod ?a ?p)
+    (not (artifact_at ?a ?z))
   )
 )
 
