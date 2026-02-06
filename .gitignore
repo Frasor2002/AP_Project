@@ -4,3 +4,4 @@ sas_plan
 logs
 *.plan
 *.sas
+*.jar

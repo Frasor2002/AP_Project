@@ -52,7 +52,6 @@
   (robot_capacity worker n0)
   (robot_can_carry worker n0)
   (robot_can_carry worker n1)
-  (robot_can_carry worker n2)
 
   ; Sets how the capacity scores are ordered
   (next_capacity n0 n1)

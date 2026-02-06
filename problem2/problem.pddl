@@ -1,9 +1,10 @@
-(define (problem problem_medium) (:domain imv)
+(define (problem problem_2) (:domain imv)
 (:objects 
-  worker - robot
+  light1 heavy1 - ground_robot
+  drone1 - drone
 
-  alpha1 alpha2 alpha3 alpha4 alpha5 - artifact_alpha
-  beta1 beta2 beta3 beta4 beta5 - artifact_beta
+  alpha1 alpha2 alpha3 - artifact_alpha
+  beta1 beta2 beta3 - artifact_beta
 )
 
 (:init
@@ -36,7 +37,7 @@
   (normal_pressure stasis_lab)
   (normal_pressure cryo_chamber)
   (low_pressure maintenance_tunnel)
-  (low_pressure pod_zone)
+  (normal_pressure pod_zone)
 
   (pod_at pod1 pod_zone)
   (pod_at pod2 pod_zone)
@@ -46,24 +47,40 @@
   (artifact_at alpha1 hall_alpha)
   (artifact_at alpha2 hall_alpha)
   (artifact_at alpha3 hall_alpha)
-  (artifact_at alpha4 hall_alpha)
-  (artifact_at alpha5 hall_alpha)
+
   (artifact_at beta1 hall_beta)
   (artifact_at beta2 hall_beta)
   (artifact_at beta3 hall_beta)
-  (artifact_at beta4 hall_beta)
-  (artifact_at beta5 hall_beta)
+
   (is_not_cool alpha1)
   (is_not_cool alpha2)
   (is_not_cool alpha3)
-  (is_not_cool alpha4)
-  (is_not_cool alpha5)
 
-  (robot_at worker entrance)
-  (is_unsealed worker)
-  (robot_capacity worker n0)
-  (robot_can_carry worker n0)
-  (robot_can_carry worker n1)
+
+  (robot_at light1 entrance)
+  (robot_at heavy1 entrance)
+  (robot_at drone1 entrance)
+
+  (is_unsealed light1)
+  (is_unsealed heavy1)
+
+  (robot_capacity light1 n0)
+  (robot_can_carry light1 n0)
+  (robot_can_carry light1 n1)
+  (robot_can_carry light1 n2)
+
+
+  (robot_capacity heavy1 n0)
+  (robot_can_carry heavy1 n0)
+  (robot_can_carry heavy1 n1)
+  (robot_can_carry heavy1 n2)
+  (robot_can_carry heavy1 n3)
+  (robot_can_carry heavy1 n4)
+
+  
+  (robot_capacity drone1 n0)
+  (robot_can_carry drone1 n0)
+  (robot_can_carry drone1 n1)
 
   ; Sets how the capacity scores are ordered
   (next_capacity n0 n1)
@@ -76,26 +93,22 @@
   (artifact_at alpha1 stasis_lab)
   (artifact_at alpha2 stasis_lab)
   (artifact_at alpha3 stasis_lab)
-  (artifact_at alpha4 stasis_lab)
-  (artifact_at alpha5 stasis_lab)
+
 
   (is_cool alpha1)
   (is_cool alpha2)
   (is_cool alpha3)
-  (is_cool alpha4)
-  (is_cool alpha5)
+
 
   (artifact_at beta1 stasis_lab)
   (artifact_at beta2 stasis_lab)
   (artifact_at beta3 stasis_lab)
-  (artifact_at beta4 stasis_lab)
-  (artifact_at beta5 stasis_lab)
+
 
   (is_in_pod beta1)
   (is_in_pod beta2)
   (is_in_pod beta3)
-  (is_in_pod beta4)
-  (is_in_pod beta5)
+
 ))
 
 )
