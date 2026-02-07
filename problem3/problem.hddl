@@ -3,9 +3,16 @@
     
   (:objects 
     light1 heavy1 - ground_robot
-    d1 - drone
+    ;d1 - drone
     alpha1 alpha2 alpha3 - artifact_alpha
     beta1 beta2 beta3 - artifact_beta
+  )
+
+  (:htn
+    :parameters ()
+    :subtasks (and
+      (task0 (t_all_artifacts_in_stasis))
+      )
   )
 
   (:init
@@ -52,7 +59,7 @@
 
     (robot_at light1 entrance)
     (robot_at heavy1 entrance)
-    (robot_at d1 entrance)
+    ;(robot_at d1 entrance)
 
     (is_unsealed light1)
     (is_unsealed heavy1)
@@ -70,9 +77,9 @@
     (robot_can_carry heavy1 n3)
     (robot_can_carry heavy1 n4)
         
-    (robot_capacity d1 n0)
-    (robot_can_carry d1 n0)
-    (robot_can_carry d1 n1)
+    ;(robot_capacity d1 n0)
+    ;(robot_can_carry d1 n0)
+    ;(robot_can_carry d1 n1)
 
     (next_capacity n0 n1)
     (next_capacity n1 n2)
@@ -80,10 +87,4 @@
     (next_capacity n3 n4)
   )  
 
-  (:htn
-    :parameters ()
-    :subtasks (and
-      (task0 (all_artifacts_in_stasis))
-      )
-  )
 )

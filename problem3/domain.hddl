@@ -58,180 +58,183 @@
 )
 
 ; tasks
-(:task all_artifacts_in_stasis :parameters () :precondition () :effect ())
-(:task deliver_all_alpha :parameters () :precondition () :effect ())
-(:task deliver_all_beta :parameters () :precondition () :effect ())
-(:task deliver_alpha :parameters (?a - artifact_alpha) :precondition () :effect ())
-(:task deliver_beta :parameters (?b - artifact_beta) :precondition () :effect ())
-(:task traverse_museum :parameters (?r - robot ?to - zone) :precondition () :effect ())
-(:task ensure_sealed :parameters (?r - ground_robot))
-(:task ensure_unsealed :parameters (?r - ground_robot))
+; put a t in front of the names for clarity t_{name}
+(:task t_all_artifacts_in_stasis :parameters () :precondition () :effect ())
+(:task t_deliver_all_alpha :parameters () :precondition () :effect ())
+(:task t_deliver_all_beta :parameters () :precondition () :effect ())
+(:task t_deliver_one_alpha :parameters (?a - artifact_alpha) :precondition () :effect ())
+(:task t_deliver_one_beta :parameters (?b - artifact_beta) :precondition () :effect ())
+(:task t_traverse_museum :parameters (?r - robot ?to - zone) :precondition () :effect ())
+(:task t_ensure_sealed :parameters (?r - ground_robot) :precondition () :effect ())
+(:task t_ensure_unsealed :parameters (?r - ground_robot) :precondition () :effect ())
 
 
 ; methods
+; put a m in front of the names for clarity m_{name}
+
 
 (:method m_stabilize_all
   :parameters ()
-  :task (all_artifacts_in_stasis)
+  :task (t_all_artifacts_in_stasis)
   :subtasks (and
-    (task0 (deliver_all_alpha))
-    (task1 (deliver_all_beta))
+    (task0 (t_deliver_all_alpha))
+    (task1 (t_deliver_all_beta))
   )
+  :ordering (and (task0 < task1))
+
 )
 
 (:method m_deliver_all_alpha
-  :parameters (?a - artifact_alpha)
-  :task (deliver_all_alpha)
-  :precondition (is_not_cool ?a) 
-  :ordered-subtasks (and
-    (deliver_alpha ?a)
-    (deliver_all_alpha)
+  :parameters ()
+  :task (t_deliver_all_alpha)
+  :precondition () 
+  :subtasks (and
+    (task0 (t_deliver_one_alpha alpha1))
+    (task1 (t_deliver_one_alpha alpha2))
+    (task2 (t_deliver_one_alpha alpha3))
   )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3))
 )
 
 (:method m_deliver_all_beta
-  :parameters (?b - artifact_beta)
-  :task (deliver_all_beta)
-  :precondition (artifact_at ?b hall_beta)
-  :ordered-subtasks (and
-    (deliver_beta ?b)
-    (deliver_all_beta)
+  :parameters ()
+  :task (t_deliver_all_beta)
+  :precondition ()
+  :subtasks (and
+    (task0 (t_deliver_one_beta beta1))
+    (task1 (t_deliver_one_beta beta2))
+    (task2 (t_deliver_one_beta beta3))
   )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3))
 )
 
-(:method m_alpha_done
-  :parameters ()
-  :task (deliver_all_alpha)
-  :ordered-subtasks () 
-)
-
-(:method m_beta_done
-  :parameters ()
-  :task (deliver_all_beta)
-  :ordered-subtasks () 
-)
-
-
-(:method m_deliver_alpha
-  :parameters (?r - ground_robot ?a - artifact_alpha ?from - zone ?cap1 ?cap2 - capacity_score)
-  :task (deliver_alpha ?a)
+(:method m_deliver_one_alpha
+  :parameters (?r - ground_robot ?a - artifact_alpha ?cap1 ?cap2 - capacity_score)
+  :task (t_deliver_one_alpha ?a)
   :precondition (and 
-    (artifact_at ?a ?from)
+    (artifact_at ?a hall_alpha)
     (robot_capacity ?r ?cap1)
     (next_capacity ?cap1 ?cap2)
   )
-  :ordered-subtasks (and
-    (traverse_museum ?r ?from)
-    (load ?r ?a ?from ?cap1 ?cap2)
-    (traverse_museum ?r cryo_chamber)
-    (unload ?r ?a cryo_chamber ?cap2 ?cap1)
-    (cool_artifact ?r ?a cryo_chamber)
-    (load ?r ?a cryo_chamber ?cap1 ?cap2)
-    (traverse_museum ?r stasis_lab)
-    (unload ?r ?a stasis_lab ?cap2 ?cap1)
+  :subtasks (and
+    (task0 (t_traverse_museum ?r hall_alpha))
+    (task1 (load ?r ?a hall_alpha ?cap1 ?cap2))
+    (task2 (t_traverse_museum ?r cryo_chamber))
+    (task3 (unload ?r ?a cryo_chamber ?cap2 ?cap1))
+    (task4 (cool_artifact ?r ?a cryo_chamber))
+    (task5 (load ?r ?a cryo_chamber ?cap1 ?cap2))
+    (task6 (t_traverse_museum ?r stasis_lab))
+    (task7 (unload ?r ?a stasis_lab ?cap2 ?cap1))
   )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3) (task3 < task4) (task4 < task5) (task5 < task6) (task6 < task7))
 )
 
-(:method m_deliver_beta
-  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod ?from ?pod_loc - zone ?cap1 ?cap2 ?cap3 - capacity_score)
-  :task (deliver_beta ?a)
+(:method m_deliver_one_beta
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod ?cap1 ?cap2 - capacity_score)
+  :task (t_deliver_one_beta ?a)
   :precondition (and 
-    (artifact_at ?a ?from)
-    (pod_at ?p ?pod_loc)
+    (artifact_at ?a hall_beta)
+    (pod_at ?p pod_zone)
     (pod_empty ?p)
     (robot_capacity ?r ?cap1)
     (next_capacity ?cap1 ?cap2)
-    (next_capacity ?cap1 ?cap3)
   )
-  :ordered-subtasks (and
-    (traverse_museum ?r ?from)
-    (load ?r ?a ?from ?cap1 ?cap2)
-    (traverse_museum ?r ?pod_loc)
-    (unload ?r ?a ?pod_loc ?cap2 ?cap1)
-    (place_in_pod ?r ?a ?pod_loc ?p)
-    (load_pod ?r ?a ?p ?pod_loc ?cap1 ?cap3)
-    (traverse_museum ?r stasis_lab)
-    (unload_pod ?r ?a ?p stasis_lab ?cap3 ?cap1)
-    (reset_pod ?a ?p)
+  :subtasks (and
+    (task0 (t_traverse_museum ?r hall_beta))
+    (task1 (load ?r ?a hall_beta ?cap1 ?cap2))
+    (task2 (t_traverse_museum ?r pod_zone))
+    (task3 (unload ?r ?a pod_zone ?cap2 ?cap1))
+    (task4 (place_in_pod ?r ?a pod_zone ?p))
+    (task5 (load_pod ?r ?a ?p pod_zone ?cap1 ?cap2))
+    (task6 (t_traverse_museum ?r stasis_lab))
+    (task7 (unload_pod ?r ?a ?p stasis_lab ?cap2 ?cap1))
+    (task8 (reset_pod ?a ?p))
   )
+  :ordering (and (task0 < task1) (task1 < task2) (task1 < task2) (task2 < task3) (task3 < task4) (task4 < task5) (task5 < task6) (task6 < task7) (task7 < task8))
 )
+
 
 
 (:method m_traverse_done
   :parameters (?r - robot ?loc - zone)
-  :task (traverse_museum ?r ?loc)
+  :task (t_traverse_museum ?r ?loc)
   :precondition (robot_at ?r ?loc)
-  :ordered-subtasks ()
+  :subtasks ()
 )
 
 (:method m_traverse_normal
   :parameters (?r - ground_robot ?from ?to - zone)
-  :task (traverse_museum ?r ?to)
+  :task (t_traverse_museum ?r ?to)
   :precondition (and 
     (robot_at ?r ?from)
     (connected ?from ?to)
     (normal_pressure ?to)
     (stable ?to)
   )
-  :ordered-subtasks (and
-    (ensure_unsealed ?r)
-    (move_unsealed ?r ?from ?to)
+  :subtasks (and
+    (task0 (t_ensure_unsealed ?r))
+    (task1 (move_unsealed ?r ?from ?to))
   )
+  :ordering (and (task0 < task1))
 )
 
 (:method m_traverse_low
   :parameters (?r - ground_robot ?from ?to - zone)
-  :task (traverse_museum ?r ?to)
+  :task (t_traverse_museum ?r ?to)
   :precondition (and 
     (robot_at ?r ?from)
     (connected ?from ?to)
     (low_pressure ?to)
     (stable ?to)
   )
-  :ordered-subtasks (and
-    (ensure_sealed ?r)
-    (move_sealed ?r ?from ?to)
+  :subtasks (and
+    (task0 (t_ensure_sealed ?r))
+    (task1 (move_sealed ?r ?from ?to))
   )
+  :ordering (and (task0 < task1))
 )
 
 ; if above base methods failed, use recursive method
 (:method m_traverse_recursive
   :parameters (?r - robot ?from ?mid ?to - zone)
-  :task (traverse_museum ?r ?to)
+  :task (t_traverse_museum ?r ?to)
   :precondition (and 
     (robot_at ?r ?from)
     (connected ?from ?mid)
+    (not (connected ?from ?to))
+    (not (= ?mid ?from))
   )
-  :ordered-subtasks (and
-    (traverse_museum ?r ?mid)
-    (traverse_museum ?r ?to)
-  )  
+  :subtasks (and
+    (task0 (t_traverse_museum ?r ?mid))
+    (task1 (t_traverse_museum ?r ?to))
+  )
+  :ordering (and (task0 < task1))
 )
     
 (:method m_do_seal 
   :parameters (?r - ground_robot) 
-  :task (ensure_sealed ?r) 
+  :task (t_ensure_sealed ?r) 
   :precondition (is_unsealed ?r) 
-  :ordered-subtasks (seal ?r)
+  :subtasks (task0 (seal ?r))
 )
 (:method m_already_sealed 
   :parameters (?r - ground_robot) 
-  :task (ensure_sealed ?r) 
+  :task (t_ensure_sealed ?r) 
   :precondition (is_sealed ?r) 
-  :ordered-subtasks ()
+  :subtasks ()
 )
 
 (:method m_do_unseal 
   :parameters (?r - ground_robot) 
-  :task (ensure_unsealed ?r) 
+  :task (t_ensure_unsealed ?r) 
   :precondition (is_sealed ?r) 
-  :ordered-subtasks (unseal ?r)
+  :subtasks (task0 (unseal ?r))
 )
 (:method m_already_unsealed 
   :parameters (?r - ground_robot) 
-  :task (ensure_unsealed ?r) 
+  :task (t_ensure_unsealed ?r) 
   :precondition (is_unsealed ?r) 
-  :ordered-subtasks ()
+  :subtasks ()
 )
 
 ; actions
@@ -475,5 +478,4 @@
     (stable ?z)
   )
 )
-
 )
