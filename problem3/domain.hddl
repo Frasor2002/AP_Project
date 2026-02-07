@@ -34,6 +34,10 @@
   (low_pressure ?z - zone) ; If a zone has low pressure
   (normal_pressure ?z - zone)
 
+  ; Predicated to avoid negative preconditions and equality
+  (disconnected ?z1 - zone ?z2 - zone)
+  (different ?z1 - zone ?z2 - zone)
+
   ; Pods state
   (pod_at ?p - pod ?z - zone)
   (pod_full ?p - pod)
@@ -201,8 +205,8 @@
   :precondition (and 
     (robot_at ?r ?from)
     (connected ?from ?mid)
-    (not (connected ?from ?to))
-    (not (= ?mid ?from))
+    (disconnected ?from ?to)
+    (different ?mid ?from)
   )
   :subtasks (and
     (task0 (t_traverse_museum ?r ?mid))
