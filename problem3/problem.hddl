@@ -3,7 +3,7 @@
     
   (:objects 
     light1 heavy1 - ground_robot
-    ;d1 - drone
+    d1 - drone
     alpha1 alpha2 alpha3 - artifact_alpha
     beta1 beta2 beta3 - artifact_beta
   )
