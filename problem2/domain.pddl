@@ -57,7 +57,9 @@
   (robot_can_carry ?r - robot ?n - capacity_score)
 )
 
-; drone
+; drone actions
+
+; drone can fly to any normal pressure room
 (:action fly
   :parameters (?d - drone ?from - zone ?to - zone)
   :precondition (and 
@@ -71,6 +73,7 @@
   )
 )
 
+; drone can hook an artifact to move it 
 (:action hook
   :parameters (?d - drone ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -88,6 +91,7 @@
   )
 )
 
+; drone can unhook an artifact to place it down
 (:action unhook
   :parameters (?d - drone ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -105,7 +109,7 @@
 )
 
 
-; ground_robot
+; ground_robot actions
 
 (:action move_unsealed
   :parameters (?r - ground_robot ?from - zone ?to - zone)
@@ -227,8 +231,9 @@
 
 ; after an artifact inside a pod is delivered succesfully a new pod is delivered in the pod zone
 (:action reset_pod
-  :parameters (?a - artifact_beta ?p - pod)
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod)
   :precondition (and 
+    (robot_at ?r stasis_lab)
     (pod_at ?p stasis_lab)
     (in_pod ?a ?p)
   )
@@ -277,16 +282,6 @@
     (not (artifact_at ?a ?z))
   )
 )
-
-; Assumption since the seismic should be set in time in classical planning they wont occur
-;(:action start_seismic
-;  :parameters (?z - zone)
-;  :precondition (stable ?z)
-;  :effect (and 
-;    (unstable ?z)
-;    (not (stable ?z))
-;  )
-;)
 
 (:action end_seismic
   :parameters (?z - zone)

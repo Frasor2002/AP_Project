@@ -55,6 +55,7 @@
   (robot_can_carry ?r - robot ?n - capacity_score)
 )
 
+; Move to a normal pressure zone
 (:action move_unsealed
   :parameters (?r - robot ?from - zone ?to - zone)
   :precondition (and 
@@ -70,6 +71,7 @@
   )
 )
 
+; Move to a high pressure zone
 (:action move_sealed
   :parameters (?r - robot ?from - zone ?to - zone)
   :precondition (and 
@@ -85,19 +87,21 @@
   )
 )
 
+; Seal the robot
 (:action seal
   :parameters (?r - robot)
   :precondition (is_unsealed ?r)
   :effect (and (is_sealed ?r) (not (is_unsealed ?r)))
 )
 
+; Unseal the robot
 (:action unseal
   :parameters (?r - robot)
   :precondition (is_sealed ?r)
   :effect (and (not (is_sealed ?r)) (is_unsealed ?r))
 )
 
-
+; Load an artifact
 (:action load
   :parameters (?r - robot ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -116,6 +120,7 @@
   )
 )
 
+; Unload an artifact
 (:action unload
   :parameters (?r - robot ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -134,6 +139,7 @@
   )
 )
 
+; Load a pod
 (:action load_pod
   :parameters (?r - robot ?a - artifact ?p - pod ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -155,6 +161,7 @@
   )
 )
 
+; Unload a pod
 (:action unload_pod
   :parameters (?r - robot ?a - artifact ?p - pod ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
   :precondition (and 
@@ -175,8 +182,9 @@
 
 ; after an artifact inside a pod is delivered succesfully a new pod is delivered in the pod zone
 (:action reset_pod
-  :parameters (?a - artifact_beta ?p - pod)
+  :parameters (?r - robot ?a - artifact_beta ?p - pod)
   :precondition (and 
+    (robot_at ?r stasis_lab)
     (pod_at ?p stasis_lab)
     (in_pod ?a ?p)
   )
@@ -191,7 +199,7 @@
   )
 )
 
-
+; cool down an artifact
 (:action cool_artifact
   :parameters (?r - robot ?a - artifact_alpha ?z - cryo_zone)
   :precondition (and 
@@ -206,6 +214,7 @@
   )
 )
 
+; Place in pod an artifact
 (:action place_in_pod
   :parameters (?r - robot ?a - artifact_beta ?z - zone ?p - pod)
   :precondition (and 
@@ -214,28 +223,17 @@
     (is_unsealed ?r)
     (pod_at ?p ?z)
     (pod_empty ?p)
-    ;(not_in_pod ?a)
   )
   :effect (and 
     (not (pod_empty ?p))
     (pod_full ?p)
-    ;(not (not_in_pod ?a))
     (is_in_pod ?a)
     (in_pod ?a ?p)
     (not (artifact_at ?a ?z))
   )
 )
 
-; Assumption since the seismic should be set in time in classical planning they wont occur
-;(:action start_seismic
-;  :parameters (?z - zone)
-;  :precondition (stable ?z)
-;  :effect (and 
-;    (unstable ?z)
-;    (not (stable ?z))
-;  )
-;)
-
+; Wait the end of the seismic event
 (:action end_seismic
   :parameters (?z - zone)
   :precondition (unstable ?z)
