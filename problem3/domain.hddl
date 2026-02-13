@@ -152,7 +152,7 @@
     (task2 (load_pod ?r ?a ?p pod_zone ?cap1 ?cap2))
     (task3 (t_traverse_museum ?r stasis_lab))
     (task4 (unload_pod ?r ?a ?p stasis_lab ?cap2 ?cap1))
-    (task5 (reset_pod ?a ?p))
+    (task5 (reset_pod ?r ?a ?p))
   )
   :ordering (and (task0 < task1) (task1 < task2) (task2 < task3) (task3 < task4) (task4 < task5))
 )
@@ -411,8 +411,9 @@
 
 ; after an artifact inside a pod is delivered succesfully a new pod is delivered in the pod zone
 (:action reset_pod
-  :parameters (?a - artifact_beta ?p - pod)
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod)
   :precondition (and 
+    (robot_at ?r stasis_lab)
     (pod_at ?p stasis_lab)
     (in_pod ?a ?p)
   )

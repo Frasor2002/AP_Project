@@ -240,9 +240,10 @@
 
 ; after an artifact inside a pod is delivered succesfully a new pod is delivered in the pod zone
 (:durative-action reset_pod
-  :parameters (?a - artifact_beta ?p - pod)
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod)
   :duration (= ?duration 1)
   :condition (and 
+    (at start (robot_at ?r stasis_lab))
     (at start (pod_at ?p stasis_lab))
     (at start (in_pod ?a ?p))
   )
