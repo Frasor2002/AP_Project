@@ -17,8 +17,8 @@ cleanup() {
 trap cleanup EXIT
 
 # Start launch in background and save output in logs
-echo "Starting ROS 2 Launch (output saved to launch.log)..."
-ros2 launch problem5 problem5_launch.py > launch.log 2>&1 &
+#ros2 launch problem5 problem5_launch.py > launch.log 2>&1 &
+ros2 launch problem5 problem5_launch.py 2>&1 | tee launch.log | grep --line-buffered -vE "timeout percentage|\[WARN\]|\[INFO\]" &
 
 # Launch PID
 LAUNCH_PID=$!
