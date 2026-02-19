@@ -1,0 +1,73 @@
+set instance drone1 drone
+set instance robot1 ground_robot
+set instance artifact_a artifact_alpha
+set instance artifact_b artifact_beta
+set instance entrance zone
+set instance hall_alpha zone
+set instance hall_beta zone
+set instance pod_zone zone
+set instance stasis_lab zone
+set instance cryo_chamber zone
+set instance maintenance_tunnel zone
+set instance pod1 pod
+set instance pod2 pod
+
+get problem instances
+
+set predicate (robot_at drone1 entrance)
+set predicate (robot_at robot1 entrance)
+set predicate (is_unsealed robot1)
+
+set predicate (artifact_at artifact_a hall_alpha)
+set predicate (is_not_cool artifact_a)
+set predicate (artifact_at artifact_b hall_beta)
+
+set predicate (connected entrance maintenance_tunnel)
+set predicate (connected maintenance_tunnel entrance)
+set predicate (connected hall_alpha maintenance_tunnel)
+set predicate (connected maintenance_tunnel hall_alpha)
+set predicate (connected hall_beta maintenance_tunnel)
+set predicate (connected maintenance_tunnel hall_beta)
+set predicate (connected stasis_lab maintenance_tunnel)
+set predicate (connected maintenance_tunnel stasis_lab)
+set predicate (connected pod_zone maintenance_tunnel)
+set predicate (connected maintenance_tunnel pod_zone)
+set predicate (connected cryo_chamber maintenance_tunnel)
+set predicate (connected maintenance_tunnel cryo_chamber)
+
+
+set predicate (is_stasis stasis_lab)
+set predicate (is_pod_zone pod_zone)
+set predicate (is_cryo cryo_chamber)
+
+set predicate (stable entrance)
+set predicate (stable hall_alpha)
+set predicate (stable hall_beta)
+set predicate (stable pod_zone)
+set predicate (stable stasis_lab)
+set predicate (stable cryo_chamber)
+set predicate (stable maintenance_tunnel)
+
+set predicate (normal_pressure entrance)
+set predicate (normal_pressure hall_alpha)
+set predicate (normal_pressure hall_beta)
+set predicate (normal_pressure pod_zone)
+set predicate (normal_pressure stasis_lab)
+set predicate (normal_pressure cryo_chamber)
+set predicate (low_pressure maintenance_tunnel)
+
+set predicate (pod_at pod1 pod_zone)
+set predicate (pod_at pod2 pod_zone)
+set predicate (pod_empty pod1)
+set predicate (pod_empty pod2)
+
+set function (= (current_load drone1) 0)
+set function (= (current_load robot1) 0)
+set function (= (max_capacity drone1) 1)
+set function (= (max_capacity robot1) 4)
+
+get problem predicates
+
+set goal (and (artifact_at artifact_a stasis_lab) (artifact_at artifact_b stasis_lab) (is_cool artifact_a) (is_in_pod artifact_b) )
+get problem goal
+get plan

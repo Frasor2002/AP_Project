@@ -1,0 +1,472 @@
+(define (domain imv)
+
+(:requirements :strips :typing :hierarchie)
+
+(:types
+  zone artifact robot pod - object
+  cryo_zone - zone
+  artifact_alpha artifact_beta - artifact
+  drone ground_robot - robot
+  capacity_score - object
+)
+
+; The zones will always be the same
+; The pods will always be two
+(:constants
+  hall_alpha hall_beta maintenance_tunnel pod_zone entrance stasis_lab - zone
+  cryo_chamber - cryo_zone
+  pod1 pod2 - pod
+  n0 n1 n2 n3 n4 - capacity_score
+)
+
+(:predicates
+
+  ; Zone state
+  (connected ?z1 - zone ?z2 - zone)
+  (stable ?z - zone) ; Used to tell if a zone is stable
+  (unstable ?z - zone)
+  (low_pressure ?z - zone) ; If a zone has low pressure
+  (normal_pressure ?z - zone)
+
+  ; Predicated to avoid negative preconditions and equality
+  (disconnected ?z1 - zone ?z2 - zone)
+  (different ?z1 - zone ?z2 - zone)
+
+  ; Pods state
+  (pod_at ?p - pod ?z - zone)
+  (pod_full ?p - pod)
+  (pod_empty ?p - pod)
+  (in_pod ?a - artifact_beta ?p - pod)
+
+  ; Artifact state
+  (artifact_at ?a - artifact ?z - zone)
+  (is_cool ?a - artifact_alpha)
+  (is_not_cool ?a - artifact_alpha)
+  (is_in_pod ?a - artifact_beta)
+
+  ; Robot state
+  (robot_at ?r - robot ?z - zone)
+  (is_sealed ?r - ground_robot)
+  (is_unsealed ?r - ground_robot)
+  (is_carrying ?r - robot ?a - artifact)
+  (is_carrying_pod ?r - ground_robot ?p - pod)
+  (next_capacity ?n1 - capacity_score ?n2 - capacity_score)
+  (robot_capacity ?r - robot ?n - capacity_score)
+  (robot_can_carry ?r - robot ?n - capacity_score)
+)
+
+; tasks
+; put a t in front of the names for clarity t_{name}
+(:task t_all_artifacts_in_stasis :parameters () :precondition () :effect ())
+(:task t_deliver_all_alpha :parameters () :precondition () :effect ())
+(:task t_deliver_all_beta :parameters () :precondition () :effect ())
+(:task t_deliver_one_alpha :parameters (?a - artifact_alpha) :precondition () :effect ())
+(:task t_deliver_one_beta :parameters (?b - artifact_beta) :precondition () :effect ())
+(:task t_traverse_museum :parameters (?r - robot ?to - zone) :precondition () :effect ())
+(:task t_ensure_sealed :parameters (?r - ground_robot) :precondition () :effect ())
+(:task t_ensure_unsealed :parameters (?r - ground_robot) :precondition () :effect ())
+(:task t_transport_artifact :parameters (?r - robot ?a - artifact ?from - zone ?to - zone) :precondition () :effect ())
+
+
+; methods
+; put a m in front of the names for clarity m_{name}
+
+(:method m_stabilize_all
+  :parameters ()
+  :task (t_all_artifacts_in_stasis)
+  :subtasks (and
+    (task0 (t_deliver_all_alpha))
+    (task1 (t_deliver_all_beta))
+  )
+  :ordering (and (task0 < task1))
+)
+
+(:method m_deliver_all_alpha
+  :parameters ()
+  :task (t_deliver_all_alpha)
+  :precondition () 
+  :subtasks (and
+    (task0 (t_deliver_one_alpha alpha1))
+    (task1 (t_deliver_one_alpha alpha2))
+    (task2 (t_deliver_one_alpha alpha3))
+  )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3))
+)
+
+(:method m_deliver_all_beta
+  :parameters ()
+  :task (t_deliver_all_beta)
+  :precondition ()
+  :subtasks (and
+    (task0 (t_deliver_one_beta beta1))
+    (task1 (t_deliver_one_beta beta2))
+    (task2 (t_deliver_one_beta beta3))
+  )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3))
+)
+
+(:method m_transport_artifact_ground
+  :parameters (?r - ground_robot ?a - artifact ?from - zone ?to - zone ?c1 ?c2 - capacity_score)
+  :task (t_transport_artifact ?r ?a ?from ?to)
+  :precondition (and
+    (robot_capacity ?r ?c1)
+    (next_capacity ?c1 ?c2)
+    (artifact_at ?a ?from) 
+  )
+  :subtasks (and
+    (step1 (t_traverse_museum ?r ?from))
+    (step2 (load ?r ?a ?from ?c1 ?c2))
+    (step3 (t_traverse_museum ?r ?to))
+    (step4 (unload ?r ?a ?to ?c2 ?c1))
+  )
+  :ordering (and (step1 < step2) (step2 < step3) (step3 < step4))
+)
+
+(:method m_deliver_one_alpha
+  :parameters (?r - ground_robot ?a - artifact_alpha)
+  :task (t_deliver_one_alpha ?a)
+  :precondition (artifact_at ?a hall_alpha)
+  :subtasks (and
+    (task0 (t_transport_artifact ?r ?a hall_alpha cryo_chamber))
+    (task1 (cool_artifact ?r ?a cryo_chamber))
+    (task2 (t_transport_artifact ?r ?a cryo_chamber stasis_lab))
+  )
+  :ordering (and (task0 < task1) (task1 < task2))
+)
+
+(:method m_deliver_one_beta
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod ?cap1 ?cap2 - capacity_score)
+  :task (t_deliver_one_beta ?a)
+  :precondition (and 
+    (artifact_at ?a hall_beta)
+    (pod_at ?p pod_zone)
+    (pod_empty ?p)
+    (robot_capacity ?r ?cap1)
+    (next_capacity ?cap1 ?cap2)
+  )
+  :subtasks (and
+    (task0 (t_transport_artifact ?r ?a hall_beta pod_zone))
+    (task1 (place_in_pod ?r ?a pod_zone ?p))
+    (task2 (load_pod ?r ?a ?p pod_zone ?cap1 ?cap2))
+    (task3 (t_traverse_museum ?r stasis_lab))
+    (task4 (unload_pod ?r ?a ?p stasis_lab ?cap2 ?cap1))
+    (task5 (reset_pod ?r ?a ?p))
+  )
+  :ordering (and (task0 < task1) (task1 < task2) (task2 < task3) (task3 < task4) (task4 < task5))
+)
+
+(:method m_traverse_done
+  :parameters (?r - robot ?loc - zone)
+  :task (t_traverse_museum ?r ?loc)
+  :precondition (robot_at ?r ?loc)
+  :subtasks ()
+)
+
+(:method m_traverse_normal
+  :parameters (?r - ground_robot ?from ?to - zone)
+  :task (t_traverse_museum ?r ?to)
+  :precondition (and 
+    (robot_at ?r ?from)
+    (connected ?from ?to)
+    (normal_pressure ?to)
+    (stable ?to)
+  )
+  :subtasks (and
+    (task0 (t_ensure_unsealed ?r))
+    (task1 (move_unsealed ?r ?from ?to))
+  )
+  :ordering (and (task0 < task1))
+)
+
+(:method m_traverse_low
+  :parameters (?r - ground_robot ?from ?to - zone)
+  :task (t_traverse_museum ?r ?to)
+  :precondition (and 
+    (robot_at ?r ?from)
+    (connected ?from ?to)
+    (low_pressure ?to)
+    (stable ?to)
+  )
+  :subtasks (and
+    (task0 (t_ensure_sealed ?r))
+    (task1 (move_sealed ?r ?from ?to))
+  )
+  :ordering (and (task0 < task1))
+)
+
+; if above base methods failed, use recursive method
+(:method m_traverse_recursive
+  :parameters (?r - robot ?from ?mid ?to - zone)
+  :task (t_traverse_museum ?r ?to)
+  :precondition (and 
+    (robot_at ?r ?from)
+    (connected ?from ?mid)
+    (disconnected ?from ?to)
+    (different ?mid ?from)
+  )
+  :subtasks (and
+    (task0 (t_traverse_museum ?r ?mid))
+    (task1 (t_traverse_museum ?r ?to))
+  )
+  :ordering (and (task0 < task1))
+)
+    
+(:method m_do_seal 
+  :parameters (?r - ground_robot) 
+  :task (t_ensure_sealed ?r) 
+  :precondition (is_unsealed ?r) 
+  :subtasks (task0 (seal ?r))
+)
+(:method m_already_sealed 
+  :parameters (?r - ground_robot) 
+  :task (t_ensure_sealed ?r) 
+  :precondition (is_sealed ?r) 
+  :subtasks ()
+)
+
+(:method m_do_unseal 
+  :parameters (?r - ground_robot) 
+  :task (t_ensure_unsealed ?r) 
+  :precondition (is_sealed ?r) 
+  :subtasks (task0 (unseal ?r))
+)
+(:method m_already_unsealed 
+  :parameters (?r - ground_robot) 
+  :task (t_ensure_unsealed ?r) 
+  :precondition (is_unsealed ?r) 
+  :subtasks ()
+)
+
+; actions
+
+; drone
+(:action fly
+  :parameters (?d - drone ?from - zone ?to - zone)
+  :precondition (and 
+    (robot_at ?d ?from)
+    (stable ?to)
+    (normal_pressure ?to)
+  )
+  :effect (and 
+    (not (robot_at ?d ?from))
+    (robot_at ?d ?to)
+  )
+)
+
+(:action hook
+  :parameters (?d - drone ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (robot_at ?d ?z)
+    (artifact_at ?a ?z)
+    (robot_capacity ?d ?old_n)
+    (next_capacity ?old_n ?new_n)
+    (robot_can_carry ?d ?new_n)
+  )
+  :effect (and 
+    (not (artifact_at ?a ?z))
+    (is_carrying ?d ?a)
+    (not (robot_capacity ?d ?old_n))
+    (robot_capacity ?d ?new_n)
+  )
+)
+
+(:action unhook
+  :parameters (?d - drone ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (robot_at ?d ?z)
+    (is_carrying ?d ?a)
+    (robot_capacity ?d ?old_n)
+    (next_capacity ?new_n ?old_n)
+  )
+  :effect (and 
+    (artifact_at ?a ?z)
+    (not (is_carrying ?d ?a))
+    (not (robot_capacity ?d ?old_n))
+    (robot_capacity ?d ?new_n)
+  )
+)
+
+
+; ground_robot
+
+(:action move_unsealed
+  :parameters (?r - ground_robot ?from - zone ?to - zone)
+  :precondition (and 
+    (connected ?from ?to)
+    (robot_at ?r ?from)
+    (stable ?to)
+    (normal_pressure ?to)
+    (is_unsealed ?r)
+  )
+  :effect (and 
+    (not (robot_at ?r ?from))
+    (robot_at ?r ?to)
+  )
+)
+
+(:action move_sealed
+  :parameters (?r - ground_robot ?from - zone ?to - zone)
+  :precondition (and 
+    (connected ?from ?to)
+    (robot_at ?r ?from)
+    (stable ?to)
+    (low_pressure ?to)
+    (is_sealed ?r)
+  )
+  :effect (and 
+    (not (robot_at ?r ?from))
+    (robot_at ?r ?to)
+  )
+)
+
+(:action seal
+  :parameters (?r - ground_robot)
+  :precondition (is_unsealed ?r)
+  :effect (and (is_sealed ?r) (not (is_unsealed ?r)))
+)
+
+(:action unseal
+  :parameters (?r - ground_robot)
+  :precondition (is_sealed ?r)
+  :effect (and (not (is_sealed ?r)) (is_unsealed ?r))
+)
+
+
+(:action load
+  :parameters (?r - ground_robot ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (robot_at ?r ?z)
+    (artifact_at ?a ?z)
+    (is_unsealed ?r)
+    (robot_capacity ?r ?old_n)
+    (next_capacity ?old_n ?new_n)
+    (robot_can_carry ?r ?new_n)
+  )
+  :effect (and 
+    (not (artifact_at ?a ?z))
+    (is_carrying ?r ?a)
+    (not (robot_capacity ?r ?old_n))
+    (robot_capacity ?r ?new_n)
+  )
+)
+
+(:action unload
+  :parameters (?r - ground_robot ?a - artifact ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (robot_at ?r ?z)
+    (is_carrying ?r ?a)
+    (is_unsealed ?r)
+    (robot_capacity ?r ?old_n)
+    (next_capacity ?new_n ?old_n)
+
+  )
+  :effect (and 
+    (artifact_at ?a ?z)
+    (not (is_carrying ?r ?a))
+    (not (robot_capacity ?r ?old_n))
+    (robot_capacity ?r ?new_n)
+  )
+)
+
+(:action load_pod
+  :parameters (?r - ground_robot ?a - artifact ?p - pod ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (robot_at ?r ?z)
+    (is_unsealed ?r)
+    (pod_at ?p ?z)
+    (in_pod ?a ?p)
+
+    (robot_capacity ?r ?old_n)
+    (next_capacity ?old_n ?new_n)
+    (robot_can_carry ?r ?new_n)
+  )
+  :effect (and 
+    (not (artifact_at ?a ?z))
+    (not (pod_at ?p ?z))
+    (is_carrying_pod ?r ?p)
+    (not (robot_capacity ?r ?old_n))
+    (robot_capacity ?r ?new_n)
+  )
+)
+
+(:action unload_pod
+  :parameters (?r - ground_robot ?a - artifact ?p - pod ?z - zone ?old_n - capacity_score ?new_n - capacity_score)
+  :precondition (and 
+    (in_pod ?a ?p)
+    (robot_at ?r ?z)
+    (is_unsealed ?r)
+    (is_carrying_pod ?r ?p)
+    (robot_capacity ?r ?old_n)
+    (next_capacity ?new_n ?old_n)
+  )
+  :effect (and 
+    (pod_at ?p ?z)
+    (not (is_carrying_pod ?r ?p))
+    (not (robot_capacity ?r ?old_n))
+    (robot_capacity ?r ?new_n)
+  )
+)
+
+; after an artifact inside a pod is delivered succesfully a new pod is delivered in the pod zone
+(:action reset_pod
+  :parameters (?r - ground_robot ?a - artifact_beta ?p - pod)
+  :precondition (and 
+    (robot_at ?r stasis_lab)
+    (pod_at ?p stasis_lab)
+    (in_pod ?a ?p)
+  )
+  :effect (and
+    ; a new pod is delivered and its state is reset
+    (artifact_at ?a stasis_lab)
+    (not (pod_at ?p stasis_lab))
+    (pod_at ?p pod_zone)
+    (not (pod_full ?p))
+    (pod_empty ?p)
+    (not (in_pod ?a ?p))
+  )
+)
+
+
+(:action cool_artifact
+  :parameters (?r - ground_robot ?a - artifact_alpha ?z - cryo_zone)
+  :precondition (and 
+    (artifact_at ?a ?z)
+    (robot_at ?r ?z)
+    (is_unsealed ?r)
+    (is_not_cool ?a)
+  )
+  :effect (and 
+    (is_cool ?a)
+    (not (is_not_cool ?a))
+  )
+)
+
+(:action place_in_pod
+  :parameters (?r - ground_robot ?a - artifact_beta ?z - zone ?p - pod)
+  :precondition (and 
+    (robot_at ?r ?z)
+    (artifact_at ?a ?z)
+    (is_unsealed ?r)
+    (pod_at ?p ?z)
+    (pod_empty ?p)
+    ;(not_in_pod ?a)
+  )
+  :effect (and 
+    (not (pod_empty ?p))
+    (pod_full ?p)
+    ;(not (not_in_pod ?a))
+    (is_in_pod ?a)
+    (in_pod ?a ?p)
+    (not (artifact_at ?a ?z))
+  )
+)
+
+(:action end_seismic
+  :parameters (?z - zone)
+  :precondition (unstable ?z)
+  :effect (and 
+    (not (unstable ?z))
+    (stable ?z)
+  )
+)
+)

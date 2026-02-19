@@ -1,0 +1,140 @@
+(define (problem problem_3) 
+  (:domain imv)
+    
+  (:objects 
+    light1 heavy1 - ground_robot
+    d1 - drone
+    alpha1 alpha2 alpha3 - artifact_alpha
+    beta1 beta2 beta3 - artifact_beta
+  )
+
+  (:htn
+    :parameters ()
+    :subtasks (and
+      (task0 (t_all_artifacts_in_stasis))
+      )
+  )
+
+  (:init
+    (connected entrance maintenance_tunnel) (connected maintenance_tunnel entrance)
+    (connected hall_alpha maintenance_tunnel) (connected maintenance_tunnel hall_alpha)
+    (connected hall_beta maintenance_tunnel) (connected maintenance_tunnel hall_beta)
+    (connected stasis_lab maintenance_tunnel) (connected maintenance_tunnel stasis_lab)
+    (connected pod_zone maintenance_tunnel) (connected maintenance_tunnel pod_zone)
+    (connected cryo_chamber maintenance_tunnel) (connected maintenance_tunnel cryo_chamber)
+
+    (different entrance hall_alpha)
+    (different entrance hall_beta)
+    (different entrance cryo_chamber)
+    (different entrance maintenance_tunnel)
+    (different entrance pod_zone)
+    (different entrance stasis_lab)
+    (different hall_alpha entrance)
+    (different hall_alpha hall_beta)
+    (different hall_alpha cryo_chamber)
+    (different hall_alpha maintenance_tunnel)
+    (different hall_alpha pod_zone)
+    (different hall_alpha stasis_lab)
+    (different hall_beta entrance)
+    (different hall_beta hall_alpha)
+    (different hall_beta cryo_chamber)
+    (different hall_beta maintenance_tunnel)
+    (different hall_beta pod_zone)
+    (different hall_beta stasis_lab)
+    (different cryo_chamber entrance)
+    (different cryo_chamber hall_alpha)
+    (different cryo_chamber hall_beta)
+    (different cryo_chamber maintenance_tunnel)
+    (different cryo_chamber pod_zone)
+    (different cryo_chamber stasis_lab)
+    (different maintenance_tunnel entrance)
+    (different maintenance_tunnel hall_alpha)
+    (different maintenance_tunnel hall_beta)
+    (different maintenance_tunnel cryo_chamber)
+    (different maintenance_tunnel pod_zone)
+    (different maintenance_tunnel stasis_lab)
+    (different pod_zone entrance)
+    (different pod_zone hall_alpha)
+    (different pod_zone hall_beta)
+    (different pod_zone cryo_chamber)
+    (different pod_zone maintenance_tunnel)
+    (different pod_zone stasis_lab)
+    (different stasis_lab entrance)
+    (different stasis_lab hall_alpha)
+    (different stasis_lab hall_beta)
+    (different stasis_lab cryo_chamber)
+    (different stasis_lab maintenance_tunnel)
+    (different stasis_lab pod_zone)
+
+    (disconnected entrance hall_alpha) (disconnected entrance hall_beta) (disconnected entrance cryo_chamber) (disconnected entrance pod_zone) (disconnected entrance stasis_lab)
+    (disconnected hall_alpha entrance) (disconnected hall_alpha hall_beta) (disconnected hall_alpha cryo_chamber) (disconnected hall_alpha pod_zone) (disconnected hall_alpha stasis_lab)
+    (disconnected hall_beta entrance) (disconnected hall_beta hall_alpha) (disconnected hall_beta cryo_chamber) (disconnected hall_beta pod_zone) (disconnected hall_beta stasis_lab)
+    (disconnected cryo_chamber entrance) (disconnected cryo_chamber hall_alpha) (disconnected cryo_chamber hall_beta) (disconnected cryo_chamber pod_zone) (disconnected cryo_chamber stasis_lab)
+    (disconnected pod_zone entrance) (disconnected pod_zone hall_alpha) (disconnected pod_zone hall_beta) (disconnected pod_zone cryo_chamber) (disconnected pod_zone stasis_lab)
+    (disconnected stasis_lab entrance) (disconnected stasis_lab hall_alpha) (disconnected stasis_lab hall_beta) (disconnected stasis_lab cryo_chamber) (disconnected stasis_lab pod_zone)
+
+    (stable entrance)
+    (stable maintenance_tunnel)
+    (stable hall_alpha)
+    (stable stasis_lab)
+    (stable pod_zone)
+    (stable cryo_chamber)
+    (stable hall_beta)
+
+    (normal_pressure entrance)
+    (normal_pressure hall_alpha)
+    (normal_pressure hall_beta)
+    (normal_pressure stasis_lab)
+    (normal_pressure cryo_chamber)
+    (low_pressure maintenance_tunnel)
+    (normal_pressure pod_zone)
+
+    
+    (pod_at pod1 pod_zone)
+    (pod_at pod2 pod_zone)
+    (pod_empty pod1)
+    (pod_empty pod2)
+
+    (artifact_at alpha1 hall_alpha)
+    (artifact_at alpha2 hall_alpha)
+    (artifact_at alpha3 hall_alpha)
+
+    (artifact_at beta1 hall_beta)
+    (artifact_at beta2 hall_beta)
+    (artifact_at beta3 hall_beta)
+
+    (is_not_cool alpha1)
+    (is_not_cool alpha2)
+    (is_not_cool alpha3)
+
+    (robot_at light1 entrance)
+    (robot_at heavy1 entrance)
+    ;(robot_at d1 entrance)
+
+    (is_unsealed light1)
+    (is_unsealed heavy1)
+
+    
+    (robot_capacity light1 n0)
+    (robot_can_carry light1 n0)
+    (robot_can_carry light1 n1)
+    (robot_can_carry light1 n2)
+
+    (robot_capacity heavy1 n0)
+    (robot_can_carry heavy1 n0)
+    (robot_can_carry heavy1 n1)
+    (robot_can_carry heavy1 n2)
+    (robot_can_carry heavy1 n3)
+    (robot_can_carry heavy1 n4)
+        
+    ;(robot_capacity d1 n0)
+    ;(robot_can_carry d1 n0)
+    ;(robot_can_carry d1 n1)
+
+    (next_capacity n0 n1)
+    (next_capacity n1 n2)
+    (next_capacity n2 n3)
+    (next_capacity n3 n4)
+  )  
+
+)

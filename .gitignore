@@ -1,0 +1,8 @@
+sas_plan
+*.
+*.txt
+logs
+*.plan
+*.sas
+*.hpdl
+siadex.sif
